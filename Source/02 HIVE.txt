@@ -1,0 +1,51 @@
+CREATE TABLE starbucks_menu (
+    Beverage_category STRING,
+    Beverage STRING,
+    Beverage_prep STRING,
+    Calories INT,
+    Total_Fat_g FLOAT,
+    Trans_Fat_g FLOAT,
+    Saturated_Fat_g FLOAT,
+    Sodium_mg FLOAT,
+    Total_Carbohydrates_g INT,
+    Cholesterol_mg INT,
+    Dietary_Fiber_g INT,
+    Sugars_g INT,
+    Protein FLOAT,
+    Vitamin_A_percent_dv FLOAT,
+    Vitamin_C_percent_dv FLOAT,
+    Calcium_percent_dv FLOAT,
+    Iron_percent_dv FLOAT,
+    Caffeine_mg INT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION '/BigData/starbucks/'
+TBLPROPERTIES (
+'creator'='Ashish Adhikari', 
+'created_on' = '2024-11-20', 
+'description'='This table holds STARBUCKS MENU data.',
+'skip.header.line.count'='1');
+
+
+
+### Average calorie by category ###
+###################################
+
+SELECT Beverage_category, ROUND(AVG(Caffeine_mg), 2) AS Avg_Caffeine
+FROM starbucks_menu
+GROUP BY Beverage_category
+ORDER BY Avg_Caffeine DESC;
+
+
+### Calorie-to-Caffeine Ratio by Beverage Preparation ###
+#########################################################
+
+### Find out which preparation style offers the "best energy boost" (lower ratio is better). ###
+
+SELECT Beverage_prep, ROUND(SUM(Calories) / SUM(Caffeine_mg), 2) AS Calorie_Caffeine_Ratio
+FROM starbucks_menu
+WHERE Caffeine_mg > 0
+GROUP BY Beverage_prep
+ORDER BY Calorie_Caffeine_Ratio ASC;

@@ -1,0 +1,53 @@
+// Load data into spark
+val starbucks = sc.textFile("hdfs://10.128.0.18:8020/BigData/spark/starbucks_Menu.csv")
+
+// Remove header row
+val data = starbucks.filter(element => !element.startsWith("Beverage_category"))
+
+
+
+
+
+//  AVERAGE CAFFEINE BY CATEGORY
+
+// Split the data into columns
+val splitData = data.map(line => line.split(","))
+
+// Map to (Beverage_category, Caffeine_mg)
+val categoryCaffeine = splitData.map(fields => (fields(0), fields(17).toInt))
+
+// Compute total caffeine and counts per category
+val totalCaffeineAndCount = categoryCaffeine
+  .mapValues(caffeine => (caffeine, 1))   
+  .reduceByKey((a, b) => (a._1 + b._1, a._2 + b._2))  
+
+// Calculate the average caffeine per category
+val averageCaffeine = totalCaffeineAndCount
+  .mapValues { case (totalCaffeine, count) => totalCaffeine.toFloat / count }
+  .sortBy(_._2, ascending = false)  
+
+// Collect and print results
+averageCaffeine.collect().foreach(println)
+
+
+
+// CALORIE-TO-CAFFEINE RATIO
+
+// Split the data into columns and filter out rows where Caffeine_mg is 0 or missing
+val filteredForRatio = data.map(line => line.split(",")).filter(fields => fields(17).toInt > 0)
+
+// Map to (Beverage_prep, (Calories, Caffeine_mg))
+val prepCaloriesCaffeine = filteredForRatio.map(fields => (fields(2), (fields(3).toInt, fields(17).toInt)))  // Column 2 = Beverage_prep, Column 3 = Calories, Column 15 = Caffeine_mg
+
+// Compute total Calories and Caffeine by Beverage_prep
+val totalCaloriesAndCaffeine = prepCaloriesCaffeine
+  .reduceByKey((a, b) => (a._1 + b._1, a._2 + b._2))  // Sum Calories and Caffeine for each preparation style
+
+// Calculate the Calorie-to-Caffeine ratio
+val ratioByPrep = totalCaloriesAndCaffeine
+  .mapValues { case (totalCalories, totalCaffeine) => totalCalories.toFloat / totalCaffeine }
+  .sortBy(_._2)  // Sort by ratio in ascending order
+
+// Collect and print results
+ratioByPrep.collect().foreach(println)
+
