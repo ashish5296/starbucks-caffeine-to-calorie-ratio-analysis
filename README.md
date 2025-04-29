@@ -11,3 +11,5 @@ Tasks done:
 3. Converted the Hive queries into RDD MapReduce programs using Spark RDD API using map, filter and reduceByKey functions.
 
 Read the docx file for full report.
+
+Walklthrough: https://www.youtube.com/watch?v=8Azi5EEFb4k
